@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rocket Material Strength Comparison</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1f2624;
+      --muted: #5f6b66;
+      --line: #d8dfdc;
+      --panel: #ffffff;
+      --paper: #f5f7f6;
+      --pla: #26735b;
+      --abs: #276f91;
+      --good: #18704b;
+      --warn: #9f6b00;
+      --bad: #b13a2e;
+      --soft-good: #dff1e8;
+      --soft-warn: #fff1c9;
+      --soft-bad: #f8d8d3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+    header, main, footer { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    header { padding: 38px 0 20px; }
+    h1, h2, h3, h4 { margin: 0; line-height: 1.18; letter-spacing: 0; }
+    h1 { max-width: 900px; font-size: clamp(2rem, 4vw, 3.8rem); }
+    h2 { margin-top: 42px; font-size: 1.55rem; }
+    h3 { font-size: 1.05rem; }
+    h4 { font-size: 0.95rem; color: var(--muted); }
+    p { margin: 12px 0 0; }
+    a { color: #1e667f; }
+    .lede { max-width: 880px; color: var(--muted); font-size: 1.08rem; }
+    .report-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .tag, .rank, .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      padding: 4px 9px;
+      font-size: 0.86rem;
+      font-weight: 650;
+      background: #fff;
+    }
+    .summary-grid, .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .summary-card, .panel, .pros-cons-block {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+    .card-title-row { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 16px 0 0;
+    }
+    .metrics div { border-top: 1px solid var(--line); padding-top: 8px; }
+    dt { color: var(--muted); font-size: 0.82rem; }
+    dd { margin: 2px 0 0; font-weight: 720; }
+    .good { color: var(--good); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+    .neutral { color: var(--muted); }
+    .pill.good { background: var(--soft-good); border-color: #acd8c2; }
+    .pill.warn { background: var(--soft-warn); border-color: #f0d37b; }
+    .pill.bad { background: var(--soft-bad); border-color: #edaaa1; }
+    .table-wrap { overflow-x: auto; margin-top: 16px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { font-weight: 720; }
+    thead th { color: var(--muted); font-size: 0.82rem; text-transform: uppercase; }
+    tr:last-child th, tr:last-child td { border-bottom: 0; }
+    .chart { margin-top: 18px; display: grid; gap: 14px; }
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(190px, 0.8fr) minmax(260px, 1.4fr);
+      gap: 12px;
+      align-items: center;
+    }
+    .bar-label { font-weight: 700; }
+    .bar-set {
+      display: grid;
+      grid-template-columns: 58px 1fr 58px;
+      gap: 8px;
+      align-items: center;
+    }
+    .bar-name { color: var(--muted); font-size: 0.82rem; }
+    .bar-track { height: 12px; background: #e7ece9; border-radius: 999px; overflow: hidden; }
+    .bar { display: block; height: 100%; border-radius: inherit; }
+    .bar.pla { background: var(--pla); }
+    .bar.abs { background: var(--abs); }
+    .bar-value { font-variant-numeric: tabular-nums; font-size: 0.88rem; }
+    .compact ul { margin: 10px 0 0; padding-left: 20px; }
+    .compact li + li { margin-top: 6px; }
+    .schematic {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin-top: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .formula-list {
+      columns: 2 280px;
+      padding-left: 20px;
+    }
+    footer { padding: 28px 0 42px; color: var(--muted); }
+    @media (max-width: 760px) {
+      header, main, footer { width: min(100% - 22px, 1180px); }
+      .summary-grid, .two-col { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: 1fr; }
+      .bar-row { grid-template-columns: 1fr; }
+      .bar-set { grid-template-columns: 54px 1fr 52px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Rocket Material Strength Comparison</h1>
+    <p class="lede">Static analytical comparison for a 400 mm long, 60 mm OD, 2 mm wall model rocket printed vertically with the tail on the build plate. Materials compared: Bambu PLA Basic and Bambu ABS-GF.</p>
+    <div class="report-meta">
+      <span class="tag">Vertical print with tail on build plate</span>
+      <span class="tag">20% infill</span>
+      <span class="tag">0.4 mm nozzle</span>
+      <span class="tag">0.20 mm Standard assumed</span>
+      <span class="tag">Generated 2026-05-30T00:07:11.807Z</span>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>Recommendation</h2>
+      <div class="summary-grid">
+        <article class="summary-card">
+    <div class="card-title-row">
+      <h3>Bambu ABS-GF</h3>
+      <span class="rank">Rank 1</span>
+    </div>
+    <dl class="metrics">
+      <div><dt>Score</dt><dd>69.4</dd></div>
+      <div><dt>Total mass</dt><dd>265.1 g</dd></div>
+      <div><dt>Minimum structural margin</dt><dd>2.39x</dd></div>
+      <div><dt>Hot-soak margin</dt><dd class="good">+38 deg C</dd></div>
+      <div><dt>Motor-mount thermal margin</dt><dd class="good">+23 deg C</dd></div>
+    </dl>
+    <p>Ranked first because thermal and motor-mount margins dominate final flight-article risk, despite lower fin-root toughness.</p>
+  </article>
+        <article class="summary-card">
+    <div class="card-title-row">
+      <h3>Bambu PLA Basic</h3>
+      <span class="rank">Rank 2</span>
+    </div>
+    <dl class="metrics">
+      <div><dt>Score</dt><dd>16.5</dd></div>
+      <div><dt>Total mass</dt><dd>286.6 g</dd></div>
+      <div><dt>Minimum structural margin</dt><dd>2.63x</dd></div>
+      <div><dt>Hot-soak margin</dt><dd class="bad">-8 deg C</dd></div>
+      <div><dt>Motor-mount thermal margin</dt><dd class="bad">-23 deg C</dd></div>
+    </dl>
+    <p>Ranked second because it is tougher and easier to print, but thermal softening and creep margins are negative in the hot-soak envelope.</p>
+  </article>
+      </div>
+      <p>Use ABS-GF for the final flight article when thermal exposure is credible and the printer can produce a warp-free enclosed ABS-GF part. Use PLA Basic for prototypes, cool-weather low-risk flights, and fit checks; reinforce or redesign fins before relying on either material without ground validation.</p>
+    </section>
+
+    <section>
+      <h2>Assumed geometry</h2>
+      <svg class="schematic" viewBox="0 0 640 190" role="img" aria-labelledby="schematic-title schematic-desc">
+    <title id="schematic-title">Assumed rocket geometry schematic</title>
+    <desc id="schematic-desc">Side-view schematic of a 400 mm body, 60 mm outer diameter, and three assumed fins.</desc>
+    <defs>
+      <linearGradient id="bodyGradient" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stop-color="#eef2f0"/>
+        <stop offset="1" stop-color="#c9d8d1"/>
+      </linearGradient>
+    </defs>
+    <path d="M110 95 L170 55 H505 A30 30 0 0 1 505 135 H170 Z" fill="url(#bodyGradient)" stroke="#32413b" stroke-width="2"/>
+    <path d="M110 95 L170 55 V135 Z" fill="#e9f0ec" stroke="#32413b" stroke-width="2"/>
+    <path d="M450 135 L540 165 L495 135 Z" fill="#cde7f2" stroke="#245064" stroke-width="2"/>
+    <path d="M450 55 L540 25 L495 55 Z" fill="#cde7f2" stroke="#245064" stroke-width="2"/>
+    <line x1="170" y1="160" x2="505" y2="160" stroke="#53625c" stroke-width="2"/>
+    <line x1="170" y1="154" x2="170" y2="166" stroke="#53625c" stroke-width="2"/>
+    <line x1="505" y1="154" x2="505" y2="166" stroke="#53625c" stroke-width="2"/>
+    <text x="337" y="181" text-anchor="middle">400 mm body length</text>
+    <line x1="525" y1="65" x2="525" y2="125" stroke="#53625c" stroke-width="2"/>
+    <line x1="519" y1="65" x2="531" y2="65" stroke="#53625c" stroke-width="2"/>
+    <line x1="519" y1="125" x2="531" y2="125" stroke="#53625c" stroke-width="2"/>
+    <text x="550" y="100">60 mm OD</text>
+    <text x="450" y="42">assumed fins: 90 mm root, 38 mm span, 3 mm thick</text>
+  </svg>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Item</th><th>Assumption</th><th>Why it matters</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Body tube</th><td>400 mm long, 60 mm OD, 2 mm wall</td><td>Sets axial area, bending section modulus, mass, and buckling margins.</td></tr>
+            <tr><th scope="row">Fins</th><td>3 fins, 90 mm root, 45 mm tip, 38 mm span, 3 mm thick</td><td>Assumed because no CAD was supplied; fin root loads are the most design-sensitive local checks.</td></tr>
+            <tr><th scope="row">Nose cone</th><td>90 mm conical shell proxy</td><td>Covered for crush, heat, and impact risk, but less critical than fin roots in this load envelope.</td></tr>
+            <tr><th scope="row">Motor mount</th><td>29 mm OD, 24 mm ID, 80 mm long proxy</td><td>Thermal margin near the motor is more important than global static stress.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Load envelope and formulas</h2>
+      <div class="two-col">
+        <div class="panel">
+          <h3>Envelope</h3>
+          <ul>
+            <li>Launch compression: max of 120 N or 25 g inertial load.</li>
+            <li>Aerodynamics: 45 m/s, 8 deg angle of attack, dynamic fin amplification 4x.</li>
+            <li>Parachute shock: 80 g global shock proxy.</li>
+            <li>Landing: 6 m/s stopped over 0.015 s.</li>
+            <li>Thermal: 65 deg C hot-soak and 80 deg C local motor-mount proxy.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Reusable formulas</h3>
+          <ul class="formula-list">
+            <li>Tube area: A = pi(ro^2 - ri^2)</li>
+            <li>Tube inertia: I = pi(ro^4 - ri^4) / 4</li>
+            <li>Section modulus: Z = I / ro</li>
+            <li>Axial stress: sigma = F / A</li>
+            <li>Bending stress: sigma = M / Z</li>
+            <li>Euler buckling: Pcr = pi^2 E I / (K L)^2</li>
+            <li>Shell buckling: sigma_cr = 0.605 E (t/r) / sqrt(1 - nu^2), then 0.20 imperfection factor</li>
+            <li>Fin tip deflection: delta = F L^3 / (3 E I)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Material data</h2>
+      <p>Supplier data below is cited from the Bambu technical data sheets. Both sheets state or imply idealized 100% infill, annealed/dried test specimens, so the simulation applies explicit FDM knockdowns for the requested 20% infill field print.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Property</th><th>PLA Basic</th><th>ABS-GF</th></tr></thead>
+          <tbody><tr>
+        <th scope="row">Density, g/cm^3</th>
+        <td>1.24</td>
+        <td>1.08</td>
+      </tr>
+<tr>
+        <th scope="row">Vicat, deg C</th>
+        <td>57</td>
+        <td>103</td>
+      </tr>
+<tr>
+        <th scope="row">HDT at 1.8 MPa, deg C</th>
+        <td>54</td>
+        <td>88</td>
+      </tr>
+<tr>
+        <th scope="row">HDT at 0.45 MPa, deg C</th>
+        <td>57</td>
+        <td>99</td>
+      </tr>
+<tr>
+        <th scope="row">Young modulus XY, MPa</th>
+        <td>2,580</td>
+        <td>3,160</td>
+      </tr>
+<tr>
+        <th scope="row">Young modulus Z, MPa</th>
+        <td>2,060</td>
+        <td>2,250</td>
+      </tr>
+<tr>
+        <th scope="row">Tensile strength XY, MPa</th>
+        <td>35</td>
+        <td>36</td>
+      </tr>
+<tr>
+        <th scope="row">Tensile strength Z, MPa</th>
+        <td>31</td>
+        <td>29</td>
+      </tr>
+<tr>
+        <th scope="row">Elongation XY, %</th>
+        <td>12.2</td>
+        <td>6.3</td>
+      </tr>
+<tr>
+        <th scope="row">Elongation Z, %</th>
+        <td>7.5</td>
+        <td>2.3</td>
+      </tr>
+<tr>
+        <th scope="row">Bending modulus XY, MPa</th>
+        <td>2,750</td>
+        <td>2,860</td>
+      </tr>
+<tr>
+        <th scope="row">Bending modulus Z, MPa</th>
+        <td>2,370</td>
+        <td>1,970</td>
+      </tr>
+<tr>
+        <th scope="row">Bending strength XY, MPa</th>
+        <td>76</td>
+        <td>68</td>
+      </tr>
+<tr>
+        <th scope="row">Bending strength Z, MPa</th>
+        <td>59</td>
+        <td>46</td>
+      </tr>
+<tr>
+        <th scope="row">Impact XY unnotched, kJ/m^2</th>
+        <td>26.6</td>
+        <td>14.5</td>
+      </tr>
+<tr>
+        <th scope="row">Impact XY notched, kJ/m^2</th>
+        <td>7.9</td>
+        <td>4.2</td>
+      </tr>
+<tr>
+        <th scope="row">Impact Z, kJ/m^2</th>
+        <td>13.8</td>
+        <td>5.3</td>
+      </tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Margins overview</h2>
+      <p>Margins above 1.0 indicate the simplified allowable exceeds the simplified demand. Thermal rows use degrees C of temperature margin rather than a stress ratio.</p>
+      <div class="chart"><div class="bar-row">
+        <div class="bar-label">Combined launch compression and bending</div>
+        <div class="bar-set" aria-label="Combined launch compression and bending margins">
+          <span class="bar-name">PLA</span>
+          <span class="bar-track"><span class="bar pla" style="width:55.58%"></span></span>
+          <span class="bar-value">27.79x</span>
+          <span class="bar-name">ABS-GF</span>
+          <span class="bar-track"><span class="bar abs" style="width:52%"></span></span>
+          <span class="bar-value">26x</span>
+        </div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Parachute deployment shock</div>
+        <div class="bar-set" aria-label="Parachute deployment shock margins">
+          <span class="bar-name">PLA</span>
+          <span class="bar-track"><span class="bar pla" style="width:45.72%"></span></span>
+          <span class="bar-value">22.86x</span>
+          <span class="bar-name">ABS-GF</span>
+          <span class="bar-track"><span class="bar abs" style="width:46.24%"></span></span>
+          <span class="bar-value">23.12x</span>
+        </div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Landing impact</div>
+        <div class="bar-set" aria-label="Landing impact margins">
+          <span class="bar-name">PLA</span>
+          <span class="bar-track"><span class="bar pla" style="width:89.66%"></span></span>
+          <span class="bar-value">44.83x</span>
+          <span class="bar-name">ABS-GF</span>
+          <span class="bar-track"><span class="bar abs" style="width:90.68%"></span></span>
+          <span class="bar-value">45.34x</span>
+        </div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Body tube shell buckling</div>
+        <div class="bar-set" aria-label="Body tube shell buckling margins">
+          <span class="bar-name">PLA</span>
+          <span class="bar-track"><span class="bar pla" style="width:94.74%"></span></span>
+          <span class="bar-value">47.37x</span>
+          <span class="bar-name">ABS-GF</span>
+          <span class="bar-track"><span class="bar abs" style="width:100%"></span></span>
+          <span class="bar-value">51.74x</span>
+        </div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Fin root bending</div>
+        <div class="bar-set" aria-label="Fin root bending margins">
+          <span class="bar-name">PLA</span>
+          <span class="bar-track"><span class="bar pla" style="width:6.14%"></span></span>
+          <span class="bar-value">3.07x</span>
+          <span class="bar-name">ABS-GF</span>
+          <span class="bar-track"><span class="bar abs" style="width:4.78%"></span></span>
+          <span class="bar-value">2.39x</span>
+        </div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Fin root peel</div>
+        <div class="bar-set" aria-label="Fin root peel margins">
+          <span class="bar-name">PLA</span>
+          <span class="bar-track"><span class="bar pla" style="width:9.66%"></span></span>
+          <span class="bar-value">4.83x</span>
+          <span class="bar-name">ABS-GF</span>
+          <span class="bar-track"><span class="bar abs" style="width:9.04%"></span></span>
+          <span class="bar-value">4.52x</span>
+        </div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Fin stiffness/flutter proxy</div>
+        <div class="bar-set" aria-label="Fin stiffness/flutter proxy margins">
+          <span class="bar-name">PLA</span>
+          <span class="bar-track"><span class="bar pla" style="width:5.26%"></span></span>
+          <span class="bar-value">2.63x</span>
+          <span class="bar-name">ABS-GF</span>
+          <span class="bar-track"><span class="bar abs" style="width:5.48%"></span></span>
+          <span class="bar-value">2.74x</span>
+        </div>
+      </div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Load case</th><th>Formula</th><th>PLA demand</th><th>PLA margin</th><th>ABS-GF demand</th><th>ABS-GF margin</th></tr></thead>
+          <tbody><tr>
+        <th scope="row">Launch acceleration/compression</th>
+        <td>sigma = F / A</td>
+        <td>0.33 MPa</td>
+        <td><span class="pill good">42.84</span></td>
+        <td>0.33 MPa</td>
+        <td><span class="pill good">40.07</span></td>
+      </tr>
+<tr>
+        <th scope="row">Aerodynamic bending</th>
+        <td>sigma = M / Z</td>
+        <td>0.18 MPa</td>
+        <td><span class="pill good">150.63</span></td>
+        <td>0.18 MPa</td>
+        <td><span class="pill good">117.44</span></td>
+      </tr>
+<tr>
+        <th scope="row">Combined launch compression and bending</th>
+        <td>sigma_total = F / A + M / Z</td>
+        <td>0.51 MPa</td>
+        <td><span class="pill good">27.79</span></td>
+        <td>0.51 MPa</td>
+        <td><span class="pill good">26</span></td>
+      </tr>
+<tr>
+        <th scope="row">Parachute deployment shock</th>
+        <td>F = m a, sigma = F / A</td>
+        <td>0.62 MPa</td>
+        <td><span class="pill good">22.86</span></td>
+        <td>0.57 MPa</td>
+        <td><span class="pill good">23.12</span></td>
+      </tr>
+<tr>
+        <th scope="row">Landing impact</th>
+        <td>F = m delta-v / delta-t</td>
+        <td>0.32 MPa</td>
+        <td><span class="pill good">44.83</span></td>
+        <td>0.29 MPa</td>
+        <td><span class="pill good">45.34</span></td>
+      </tr>
+<tr>
+        <th scope="row">Body tube Euler buckling</th>
+        <td>Pcr = pi^2 E I / (K L)^2</td>
+        <td>120 N</td>
+        <td><span class="pill good">138.09</span></td>
+        <td>120 N</td>
+        <td><span class="pill good">150.83</span></td>
+      </tr>
+<tr>
+        <th scope="row">Body tube shell buckling</th>
+        <td>sigma_cr = 0.605 E (t/r) / sqrt(1 - nu^2), then imperfection knockdown</td>
+        <td>120 N</td>
+        <td><span class="pill good">47.37</span></td>
+        <td>120 N</td>
+        <td><span class="pill good">51.74</span></td>
+      </tr>
+<tr>
+        <th scope="row">Thermal softening</th>
+        <td>temperature margin = Vicat - hot-soak temperature</td>
+        <td>65 deg C</td>
+        <td><span class="pill bad">-8</span></td>
+        <td>65 deg C</td>
+        <td><span class="pill good">38</span></td>
+      </tr>
+<tr>
+        <th scope="row">Creep risk</th>
+        <td>temperature margin = HDT at 0.45 MPa - hot-soak temperature</td>
+        <td>65 deg C</td>
+        <td><span class="pill bad">-8</span></td>
+        <td>65 deg C</td>
+        <td><span class="pill good">34</span></td>
+      </tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Fin focus</h2>
+      <p>Fins receive extra scrutiny because the vertical print puts the rocket axis in the printer Z direction, and the fin-body root sees interlayer-sensitive bending and peel. ABS-GF is slightly stiffer in the plate proxy, while PLA Basic keeps better root toughness and Z flexural strength after knockdowns.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fin load case</th><th>Formula</th><th>PLA demand</th><th>PLA margin</th><th>ABS-GF demand</th><th>ABS-GF margin</th></tr></thead>
+          <tbody><tr>
+        <th scope="row">Fin root bending</th>
+        <td>sigma = M / S_root</td>
+        <td>3.94 MPa</td>
+        <td><span class="pill good">3.07</span></td>
+        <td>3.94 MPa</td>
+        <td><span class="pill good">2.39</span></td>
+      </tr>
+<tr>
+        <th scope="row">Fin root peel</th>
+        <td>sigma_peel = M / (A_root * t/2)</td>
+        <td>1.31 MPa</td>
+        <td><span class="pill good">4.83</span></td>
+        <td>1.31 MPa</td>
+        <td><span class="pill good">4.52</span></td>
+      </tr>
+<tr>
+        <th scope="row">Fin root shear</th>
+        <td>tau = F / A_root</td>
+        <td>0.05 MPa</td>
+        <td><span class="pill good">94.68</span></td>
+        <td>0.05 MPa</td>
+        <td><span class="pill good">88.57</span></td>
+      </tr>
+<tr>
+        <th scope="row">Fin stiffness/flutter proxy</th>
+        <td>delta = F L^3 / (3 E I)</td>
+        <td>0.72 mm tip deflection</td>
+        <td><span class="pill good">2.63</span></td>
+        <td>0.69 mm tip deflection</td>
+        <td><span class="pill good">2.74</span></td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="two-col">
+        <div class="panel">
+          <h3>PLA Basic fin implication</h3>
+          <p>Better elongation and impact values make PLA Basic more forgiving at the root, but heat can soften the same root and allow creep under rail, storage, or recovery loads.</p>
+        </div>
+        <div class="panel">
+          <h3>ABS-GF fin implication</h3>
+          <p>ABS-GF gives the stiffer fin plate and better heat margin, but the lower Z impact and elongation values justify larger fillets, more perimeters, and root coupon tests before flight.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Nose cone and motor mount</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Area</th><th>PLA Basic</th><th>ABS-GF</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Nose cone</th><td>Less critical than fins and tube for this envelope; heat and landing damage are bigger material differentiators than static crush. Static margin 85.67x.</td><td>Less critical than fins and tube for this envelope; heat and landing damage are bigger material differentiators than static crush. Static margin 80.14x.</td></tr>
+            <tr><th scope="row">Motor mount</th><td>Thermal margin -23 deg C at the assumed local motor-mount temperature.</td><td>Thermal margin +23 deg C at the assumed local motor-mount temperature.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Pros and cons</h2>
+      <div class="summary-grid">
+        <section class="pros-cons-block">
+    <h3>Bambu PLA Basic</h3>
+    <div class="two-col compact">
+      <div>
+        <h4>Pros</h4>
+        <ul><li>Higher supplied Z impact value and higher Z flexural strength than ABS-GF.</li><li>Much easier printability for a tall vertical rocket body.</li><li>Better elongation, making fin roots less brittle in shock events.</li></ul>
+      </div>
+      <div>
+        <h4>Cons</h4>
+        <ul><li>Vicat and HDT values sit below a 65 deg C hot-soak assumption.</li><li>Higher density increases total mass and recovery shock load.</li><li>Creep and thermal softening are credible risks in sun, cars, and near the motor mount.</li></ul>
+      </div>
+    </div>
+  </section>
+        <section class="pros-cons-block">
+    <h3>Bambu ABS-GF</h3>
+    <div class="two-col compact">
+      <div>
+        <h4>Pros</h4>
+        <ul><li>Large thermal margin from Vicat and HDT values.</li><li>Lower density reduces mass, parachute shock force, and landing impulse.</li><li>Higher effective tube modulus and fin plate stiffness proxy.</li></ul>
+      </div>
+      <div>
+        <h4>Cons</h4>
+        <ul><li>Lower Z impact and elongation make fins more brittle under deployment and landing damage.</li><li>Lower Z flexural strength after root knockdowns reduces fin-root bending margin.</li><li>Harder print process with enclosure, drying, and warp-control requirements.</li></ul>
+      </div>
+    </div>
+  </section>
+      </div>
+    </section>
+
+    <section>
+      <h2>Limitations</h2>
+      <ul>
+        <li>This is a static analytical comparison, not FEA.</li><li>No motor-specific thrust curve, measured recovery shock, or measured landing acceleration was supplied.</li><li>Fin geometry is assumed and should be replaced with the actual CAD dimensions.</li><li>Loads use conservative static approximations rather than coupled flight dynamics.</li><li>FDM strength depends on drying, enclosure temperature, wall count, seam placement, cooling, and actual slicer settings.</li><li>Real validation with coupons, bend tests, deployment tests, and post-flight inspection is still required.</li>
+      </ul>
+      <p>In short: this report is useful for ranking and risk discovery, but it is not FEA and not a substitute for motor-specific ground validation.</p>
+    </section>
+
+    <section>
+      <h2>Sources</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Material</th><th>Technical data sheet</th><th>Specimen caveat</th></tr></thead>
+          <tbody><tr>
+        <th scope="row">Bambu PLA Basic</th>
+        <td><a href="https://store.bblcdn.com/s7/default/b189de92249a4b9ebed28b8ea1f080f0/Bambu_PLA_Basic_Technical_Data_Sheet.pdf">Bambu PLA Basic Technical Data Sheet V3.0</a></td>
+        <td>100% infill, annealed/dried test specimens.</td>
+      </tr>
+<tr>
+        <th scope="row">Bambu ABS-GF</th>
+        <td><a href="https://store.bblcdn.com/s6/default/0157db3ef0f044c095b6abf2b98a33d4/Bambu_ABS-GF_Technical_Data_Sheet.pdf">Bambu ABS-GF Technical Data Sheet V1.0</a></td>
+        <td>100% infill, annealed/dried test specimens.</td>
+      </tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Generated from the Node analytical model in <code>src/simulation.js</code>. No external CSS, JavaScript, or CDN assets are required.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "rocket-material-simulation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Static analytical report comparing Bambu PLA Basic and Bambu ABS-GF for a model rocket airframe.",
+  "scripts": {
+    "test": "node --test --experimental-test-coverage",
+    "build": "node scripts/build-report.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
